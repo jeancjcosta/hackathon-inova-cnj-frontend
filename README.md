@@ -1,10 +1,5 @@
 # inova-cnj-frontend
 
-# Orientações
-## Instale node, npm e vue cli
-- https://nodejs.org/en/
-- https://cli.vuejs.org/guide/installation.html
-
 ## Project setup
 ```
 npm install
