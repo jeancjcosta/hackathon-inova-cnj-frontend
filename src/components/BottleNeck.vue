@@ -28,7 +28,7 @@
           
         </v-col>
       </v-row>
-     <div class="d-flex flex-row">
+      <div class="d-flex flex-column lg-12">
         <v-btn
           class="ma-2"
           :loading="loading"
@@ -44,13 +44,17 @@
           </template>
         </v-btn>
       </div>
-      <br><br>
-      <div clss="d-flex">
+      <div class="d-flex flex-column mb-8" v-if="mostrarResultado">
+        <v-card
+          class="pa-2"
+          outlined
+          tile
+        >
+          <bubble :bubbleData="bubbleData"/>
+        </v-card>
         
       </div>
     </v-row> 
-    <div>
-    </div>
   </div>
 </template>
 
@@ -77,7 +81,8 @@ export default {
       mediaGeral: [],
       descricao: [],
       desvioPadrao: [],
-      zscores: []
+      zscores: [],
+      bubbleData: null
 
     }
   },
@@ -109,18 +114,16 @@ export default {
       .then(response => {
         this.analise = response.data
         this.loading = false
-        
-        for (let i in this.analise) {
+        this.bubbleData = this.analise.bolhas
+        /*for (let i in this.analise) {
           this.mediaGeral.push(this.analise[i].avg_geral)
           this.mediaServentia.push(this.analise[i].avg_serventia)
           this.descricao.push(this.analise[i].descricao)
           this.desvioPadrao.push(this.analise[i].std_geral)
           this.zscores.push( this.analise[i].zscore)
           console.log(this.zscores, this.analise[i].zscore)
-        }
+        }*/
         this.mostrarResultado = true
-        this.setup()
-        
       })
     },
     getClasses() {

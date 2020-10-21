@@ -3,8 +3,8 @@
     <figure class="highcharts-figure">
         <div id="container-bubble"></div>
         <p class="highcharts-description">
-            This chart shows how packed bubble charts can be grouped by series,
-            creating a hierarchy.
+            Agrupando as serventias por grau de eficiência, onde o tamanho mostra o número de 
+            processos registrado na serventia. 
         </p>
     </figure>
      
@@ -14,13 +14,9 @@
 import Highcharts from 'highcharts'
 export default {
   name: "BubbleChart",
-    data() {
-    return {
-      data: this.value,
-    };
-  },
+  props: ["bubbleData"],
   mounted() {
-    setTimeout(this.setup(), 3000);
+    this.setup()
   },
   methods: {
     setup() {
@@ -34,7 +30,7 @@ export default {
         },
         tooltip: {
             useHTML: true,
-            pointFormat: '<b>{point.name}:</b> {point.value}m CO<sub>2</sub>'
+            pointFormat: '<b>{point.name}:</b> {point.value} processos</sub>'
         },
         plotOptions: {
             packedbubble: {
@@ -65,50 +61,7 @@ export default {
                 }
             }
         },
-        series: [{
-            name: 'Eficientes',
-            data: [
-            {
-                name: "Moldova",
-                value: 7.8
-            },
-            {
-                name: "Latvia",
-                value: 7.5
-            },
-            {
-                name: "Cyprus",
-                value: 7.2
-            }]
-        }, {
-            name: 'Próximo da Média',
-            data: [
-            {
-                name: "South Africa",
-                value: 392.7
-            }, {
-                name: "Egypt",
-                value: 225.1
-            }, {
-                name: "Algeria",
-                value: 141.5
-            }]
-        }, {
-            name: 'Lento nos Movimentos',
-            data: [
-            {
-                name: "Russia",
-                value: 1766.4
-            },
-            {
-                name: "Iran",
-                value: 618.2
-            },
-            {
-                name: "Korea",
-                value: 610.1
-            }]
-        }]
+        series: this.bubbleData
     });
     }
   }

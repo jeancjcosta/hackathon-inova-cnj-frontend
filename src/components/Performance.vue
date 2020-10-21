@@ -86,6 +86,9 @@
             </v-card>
            </div>
         </div>
+        <div v-if="mostrarMensagem">
+          <h3>{{mensagem}}</h3>
+        </div>
       </div>
     </v-row>
   </div>
@@ -118,7 +121,9 @@ export default {
       descricao: [],
       desvioPadrao: [],
       zscores: [],
-      chartSet: []
+      chartSet: [],
+      mensagem: "A combinação não retornou nenhuma informação. Por favor faça uma nova seleção de parâmetros.",
+      mostrarMensagem: false
     }
   },
   watch: {
@@ -153,19 +158,27 @@ export default {
         this.analise = response.data
         this.loading = false
         
-        for (let i in this.analise) {
-          this.mediaGeral.push(this.analise[i].avg_geral)
-          this.mediaServentia.push(this.analise[i].avg_serventia)
-          this.descricao.push(this.analise[i].descricao)
-          this.desvioPadrao.push(this.analise[i].std_geral)
-          let z = this.analise[i].zscore
-          this.zscores.push(z)
+        for (let item of this.analise.columns) {
+          this.mediaGeral.push(item.avg_geral)
+          this.mediaServentia.push(item.avg_serventia)
+          this.descricao.push(item.descricao)
+          this.desvioPadrao.push(item.std_geral)
+          this.zscores.push(item.zscore)
+        }
+        for (let item of this.analise.speedometer) {
+          let z = item.zscore
           if (z < -3) z = -3
           else if (z > 3) z = 3
           let serie = {name: "Speed", data: [z], tooltip: {valueSuffix: " z-score"}}
-          this.chartSet.push({"data": {"series": [serie]}, "desc": this.analise[i].descricao})
+          this.chartSet.push({"data": {"series": [serie]}, "desc": item.descricao})
         }
-        this.mostrarResultado = true
+        if (this.zscores.length > 0 || this.chartSet.length > 0) {
+          this.mostrarResultado = true
+          this.mostrarMensagem = false
+        } else { 
+          this.mostrarResultado = false
+          this.mostrarResultado = true
+        }
       })
     },
     getClasses() {
