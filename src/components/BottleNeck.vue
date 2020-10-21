@@ -1,21 +1,13 @@
 <template>
-  <div>
+  <div> 
     <v-row>
       <v-row>
-        <h3>Preencha o Formulário</h3></v-row>
+        <h3>Preencha o Formulário</h3>
+      </v-row>
       <v-row>
         <v-col>
           <treeselect
-            :multiple="false"
-            :options="serventiasTree"
-            placeholder="Escolha a Serventia"
-            @select="setSelectedServentia"
-            :searchable="false"
-          />
-          
-        </v-col>
-        <v-col>
-          <treeselect
+            :key="2"
             :multiple="false"
             :options="classesTree"
             placeholder="Escolha a Classe"
@@ -26,35 +18,39 @@
         </v-col>
         <v-col>
           <treeselect
+            :key="3"
             :multiple="false"
             :options="assuntosTree"
             placeholder="Escolha o Assunto"
             @select="setSelectedAssunto"
-            :searchable="true"
+            :searchable="false"
           />
           
         </v-col>
       </v-row>
-      <v-row>
+     <div class="d-flex flex-row">
         <v-btn
           class="ma-2"
           :loading="loading"
           :disabled="loading"
           color="info"
-          @click="getStatistics()"
+          @click="loader = 'loading'"
         >
-          Mostrar Gargalos
+          Mostrar Gargalos Gerais
           <template v-slot:loader>
             <span class="custom-loader">
               <v-icon light>mdi-cached</v-icon>
             </span>
           </template>
         </v-btn>
-      </v-row>
-      <v-row>
-        {{analise}}
-      </v-row>
-    </v-row>
+      </div>
+      <br><br>
+      <div clss="d-flex">
+        
+      </div>
+    </v-row> 
+    <div>
+    </div>
   </div>
 </template>
 
@@ -62,38 +58,69 @@
 import axios from 'axios'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+
 export default {
   components: { Treeselect },
   name: 'BottleNeck',
   data() {
     return {
       baseUrl: 'http://localhost:8000',
-      serventiasTree: [],
-      serventiaSelected: null,
       assuntosTree: [],
-      assuntoSelected: null,
-      classessTree: [],
-      classeSelected: null,
+      assuntoSelected: 6017,
+      classesTree: [],
+      classeSelected: 1116,
       loading: false,
-      analise: null
+      loader: null,
+      analise: null,
+      mostrarResultado: false,
+      mediaServentia: [],
+      mediaGeral: [],
+      descricao: [],
+      desvioPadrao: [],
+      zscores: []
+
     }
   },
-  
+  watch: {
+      loader () {
+        const l = this.loader
+        this[l] = !this[l]
+        if (this.loader != null) {
+          this.getStatistics() 
+        }
+        setTimeout(() => (this[l] = false), 3000)
+        this.loader = null
+      },
+    },
   mounted() {
-    this.getServentias()
     this.getAssuntos()
     this.getClasses()
   },
   methods: {
     getStatistics () {
       this.loading = true
-      
+      this.mediaGeral = []
+      this.mediaServentia = []
+      this.descricao = []
+      this.desvioPadrao = []
+      this.zscores = []
       axios
-      .get(this.baseUrl + `/api/gargalos-serventia?codigoServentia=${this.serventiaSelected}&codigoAssunto=${this.assuntoSelected}&codigoClasse=${this.classeSelected}`)
+      .get(this.baseUrl + `/api/gargalos?codigoAssunto=${this.assuntoSelected}&codigoClasse=${this.classeSelected}`)
       .then(response => {
         this.analise = response.data
-        console.log(response.data)
         this.loading = false
+        
+        for (let i in this.analise) {
+          this.mediaGeral.push(this.analise[i].avg_geral)
+          this.mediaServentia.push(this.analise[i].avg_serventia)
+          this.descricao.push(this.analise[i].descricao)
+          this.desvioPadrao.push(this.analise[i].std_geral)
+          this.zscores.push( this.analise[i].zscore)
+          console.log(this.zscores, this.analise[i].zscore)
+        }
+        this.mostrarResultado = true
+        this.setup()
+        
       })
     },
     getClasses() {
@@ -131,7 +158,7 @@ export default {
     setSelectedServentia(node, id){
       this.serventiaSelected = node.id
       console.log(id)
-    }
+    }, 
   }
 }
 </script>
@@ -153,4 +180,5 @@ li {
 a {
   color: #42b983;
 }
+
 </style>

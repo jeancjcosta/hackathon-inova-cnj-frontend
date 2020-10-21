@@ -1,19 +1,15 @@
 <template>
   <v-container>
-    <v-row class="text-center">
-      <v-col>
-        <v-row>
-          <v-btn color="primary" elevation="2" large
-            v-for='tab in tabs' :key='tab' @click='chooseTab(tab)'
-          >{{tab}}</v-btn>
+    <v-row>
+      
+      <v-btn color="primary" elevation="2" large
+        v-for='tab in tabs' :key='tab' @click='chooseTab(tab)'
+      >{{tab}}</v-btn>
 
-        </v-row>
-        <v-row>
-          <keep-alive>
-            <component :is="component"></component>
-          </keep-alive>
-        </v-row>
-      </v-col>
+      <keep-alive>
+        <component :is="component"></component>
+      </keep-alive>
+      
     </v-row>
   </v-container>
 </template>

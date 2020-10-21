@@ -1,12 +1,210 @@
 <template>
   <div>
-    <h1>Componente para mostrar o desempenho da unidade judicial</h1>
+    <v-row>
+      <v-row>
+        <h3>Preencha o Formulário</h3>
+      </v-row>
+      <v-row>
+        <v-col>
+          <treeselect 
+            :key="1"
+            :multiple="false"
+            :options="serventiasTree"
+            placeholder="Escolha a Serventia"
+            @select="setSelectedServentia"
+            :searchable="false"
+          />
+          
+        </v-col>
+        <v-col>
+          <treeselect
+            :key="2"
+            :multiple="false"
+            :options="classesTree"
+            placeholder="Escolha a Classe"
+            @select="setSelectedClasse"
+            :searchable="false"
+          />
+          
+        </v-col>
+        <v-col>
+          <treeselect
+            :key="3"
+            :multiple="false"
+            :options="assuntosTree"
+            placeholder="Escolha o Assunto"
+            @select="setSelectedAssunto"
+            :searchable="false"
+          />
+          
+        </v-col>
+      </v-row>
+     <div class="d-flex flex-row">
+        <v-btn
+          class="ma-2"
+          :loading="loading"
+          :disabled="loading"
+          color="info"
+          @click="loader = 'loading'"
+        >
+          Analisar Desempenho
+          <template v-slot:loader>
+            <span class="custom-loader">
+              <v-icon light>mdi-cached</v-icon>
+            </span>
+          </template>
+        </v-btn>
+      </div>
+      <br><br>
+      <div clss="d-flex">
+        <div v-if="mostrarResultado">
+          <div class="d-flex flex-column mb-8">
+            <v-card
+              class="pa-2"
+              outlined
+              tile
+            >
+              <column 
+                :descricao="descricao"
+                :mediaServentia="mediaServentia"
+                :mediaGeral="mediaGeral"
+                :desvioPadrao="desvioPadrao"
+                :zscores="zscores"  
+              />
+            </v-card>
+          </div>
+          <div class="d-flex flex-column mb-8">
+            <v-card
+              v-for="(item, index) in chartSet"
+              :key="index"
+              class="pa-2"
+              outlined
+              tile
+            >
+              <h3>{{item.desc}}</h3>
+              <highcharts :options="item.data"/> 
+            </v-card>
+           </div>
+        </div>
+      </div>
+    </v-row>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+import Treeselect from '@riophae/vue-treeselect'
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+import Speedometer from './charts/Speedometer.vue'
+
 export default {
-  name: 'Performance'
+  components: { Treeselect, highcharts: Speedometer },
+  name: 'Performance',
+  data() {
+    return {
+      baseUrl: 'http://localhost:8000',
+      serventiasTree: [],
+      serventiaSelected: 10087,
+      assuntosTree: [],
+      assuntoSelected: 6017,
+      classesTree: [],
+      classeSelected: 1116,
+      loading: false,
+      loader: null,
+      analise: null,
+      mostrarResultado: false,
+      mediaServentia: [],
+      mediaGeral: [],
+      descricao: [],
+      desvioPadrao: [],
+      zscores: [],
+      chartSet: []
+    }
+  },
+  watch: {
+      loader () {
+        const l = this.loader
+        this[l] = !this[l]
+        if (this.loader != null) {
+          this.getStatistics() 
+        }
+        
+        this[l] = false
+        this.loader = null
+      },
+    },
+  mounted() {
+    this.getServentias()
+    this.getAssuntos()
+    this.getClasses()
+  },
+  methods: {
+    getStatistics () {
+      this.loading = true
+      this.mediaGeral = []
+      this.mediaServentia = []
+      this.descricao = []
+      this.desvioPadrao = []
+      this.zscores = []
+      this.chartSet = []
+      axios
+      .get(this.baseUrl + `/api/gargalos-serventia?codigoServentia=${this.serventiaSelected}&codigoAssunto=${this.assuntoSelected}&codigoClasse=${this.classeSelected}`)
+      .then(response => {
+        this.analise = response.data
+        this.loading = false
+        
+        for (let i in this.analise) {
+          this.mediaGeral.push(this.analise[i].avg_geral)
+          this.mediaServentia.push(this.analise[i].avg_serventia)
+          this.descricao.push(this.analise[i].descricao)
+          this.desvioPadrao.push(this.analise[i].std_geral)
+          let z = this.analise[i].zscore
+          this.zscores.push(z)
+          if (z < -3) z = -3
+          else if (z > 3) z = 3
+          let serie = {name: "Speed", data: [z], tooltip: {valueSuffix: " z-score"}}
+          this.chartSet.push({"data": {"series": [serie]}, "desc": this.analise[i].descricao})
+        }
+        this.mostrarResultado = true
+      })
+    },
+    getClasses() {
+      axios
+      .get(this.baseUrl + '/api/classes/list')
+      .then(response => {
+        this.classesTree = response.data
+      })
+    },
+    getAssuntos() {
+      axios
+      .get(this.baseUrl + '/api/assuntos/list')
+      .then(response => {
+        this.assuntosTree = response.data
+      })
+    },
+    getServentias() {
+      axios
+      .get(this.baseUrl + '/api/serventias/list')
+      .then(response => {
+        this.serventiasTree = response.data
+      })
+    }, 
+    
+    setSelectedClasse(node, id){
+      this.classeSelected = node.id
+      console.log(id)
+    },
+
+    setSelectedAssunto(node, id){
+      this.assuntoSelected = node.id
+      console.log(id)
+    },
+
+    setSelectedServentia(node, id){
+      this.serventiaSelected = node.id
+      console.log(id)
+    }
+  }
 }
 </script>
 
@@ -14,6 +212,7 @@ export default {
 <style scoped>
 h3 {
   margin: 40px 0 0;
+  padding-left: 3%;
 }
 ul {
   list-style-type: none;
