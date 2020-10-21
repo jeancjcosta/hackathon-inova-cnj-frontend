@@ -55,7 +55,7 @@
       </div>
       <diV v-if="mostrarResultado">
         <v-card>
-          <h3> O tempo estimado para tramitação processual de acordo com os parâmtros escolhidos é de {{analise}} dias.</h3>
+          <h3> O tempo estimado para tramitação processual de acordo com os parâmetros escolhidos é de {{analise}} dias.</h3>
         </v-card>
       </diV>
   </div>
