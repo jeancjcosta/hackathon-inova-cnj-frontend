@@ -52,8 +52,20 @@
         >
           <bubble :bubbleData="bubbleData"/>
         </v-card>
-        
       </div>
+
+       <div class="d-flex flex-column mb-8">
+          <v-card
+            v-for="(item, index) in chartSet"
+            :key="index"
+            class="pa-2"
+            outlined
+            tile
+          >
+            <h3>{{item.descricao}} - Média Geral = {{item.avg_geral}}(Em Dias) </h3>
+            <highcharts :options="item.data" :nomes="item.nomes"/> 
+          </v-card>
+        </div>
     </v-row> 
   </div>
 </template>
@@ -62,9 +74,10 @@
 import axios from 'axios'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+import MultiChartColumn from './charts/MultiChartColumn.vue'
 
 export default {
-  components: { Treeselect },
+  components: { Treeselect, highcharts: MultiChartColumn },
   name: 'BottleNeck',
   data() {
     return {
@@ -82,7 +95,8 @@ export default {
       descricao: [],
       desvioPadrao: [],
       zscores: [],
-      bubbleData: null
+      bubbleData: null,
+      chartSet: [],
 
     }
   },
@@ -109,20 +123,36 @@ export default {
       this.descricao = []
       this.desvioPadrao = []
       this.zscores = []
+      this.chartSet = [],
       axios
       .get(this.baseUrl + `/api/gargalos?codigoAssunto=${this.assuntoSelected}&codigoClasse=${this.classeSelected}`)
       .then(response => {
         this.analise = response.data
         this.loading = false
         this.bubbleData = this.analise.bolhas
-        /*for (let i in this.analise) {
-          this.mediaGeral.push(this.analise[i].avg_geral)
-          this.mediaServentia.push(this.analise[i].avg_serventia)
-          this.descricao.push(this.analise[i].descricao)
-          this.desvioPadrao.push(this.analise[i].std_geral)
-          this.zscores.push( this.analise[i].zscore)
-          console.log(this.zscores, this.analise[i].zscore)
-        }*/
+        for (let item of this.analise.columns) {
+          let medias = []
+          let zscores = []
+          let nomes = []
+          for (let i of item.serventias) {
+            medias.push(i.mean)
+            zscores.push(i.zscore)
+            nomes.push(i.nome)
+          }
+          let serie = {"series":[{
+            nome: "Média Serventia",
+            data: medias
+          },{
+            nome: "Z-Score",
+            data: zscores
+          }]}
+          this.chartSet.push({
+            "descricao": item.descricao,
+            "data": serie,
+            "nomes": nomes,
+            "avg_geral": item.mean_geral,
+          })
+        }
         this.mostrarResultado = true
       })
     },

@@ -10,7 +10,8 @@ import SplitPackedBubbleChart from './components/charts/SplitPackedBubbleChart.v
 import VueHighcharts from 'vue-highcharts'
 import highchartsMore from 'highcharts/highcharts-more'
 import ColumnChart from './components/charts/ColumnChart.vue'
-import HighchartsVue from "highcharts-vue";
+import HighchartsVue from 'highcharts-vue'
+import MultiChartColumn from './components/charts/MultiChartColumn.vue'
 
 highchartsMore(Highcharts)
 Vue.use(VueHighcharts, {Highcharts})
@@ -25,6 +26,8 @@ Vue.component('performance', Performance)
 Vue.component('speedometer', Speedometer)
 Vue.component('bubble', SplitPackedBubbleChart)
 Vue.component('column', ColumnChart)
+Vue.component('multi-chart-column', MultiChartColumn)
+
 
 new Vue({
   vuetify,

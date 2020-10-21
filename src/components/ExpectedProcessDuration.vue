@@ -53,9 +53,11 @@
           </template>
         </v-btn>
       </div>
-      <v-card>
-        <h3> {{analise}} </h3>
-      </v-card>
+      <diV v-if="mostrarResultado">
+        <v-card>
+          <h3> O tempo estimado para tramitação processual de acordo com os parâmtros escolhidos é de {{analise}} dias.</h3>
+        </v-card>
+      </diV>
   </div>
 </template>
 
@@ -77,7 +79,8 @@ export default {
       classeSelected: 1116,
       loading: false,
       analise: null,
-      color: "info"
+      color: "info",
+      mostrarResultado: false
     }
   },
   mounted() {
@@ -92,9 +95,9 @@ export default {
       axios
       .get(this.baseUrl + `/api/expectativa-tempo-tramitacao?codigoServentia=${this.serventiaSelected}&codigoAssunto=${this.assuntoSelected}&codigoClasse=${this.classeSelected}`)
       .then(response => {
-        this.analise = response.data
-        console.log("aqui", response.data)
+        this.analise = Math.round(response.data[0])
         this.loading = false
+        this.mostrarResultado = true
       })
     },
     getClasses() {
